@@ -4,6 +4,8 @@ const App = () => {
   const [tododata, setTodoData] = useState([]);
   const [taskdata, setTaskData] = useState("");
   const [editindex, setEditIndex] = useState(null);
+  const [indexes, setIndexes]= useState([]);
+  const [check, setCheck] = useState(false);
 
   const handleChange = (e) => {
     setTaskData(e.target.value);
@@ -35,9 +37,31 @@ const App = () => {
     setEditIndex(index);
   };
 
+  const toggleCheck=(index)=>{
+    console.log("hello")
+        const updateIndex= indexes.includes(index)? indexes.filter((i)=>i !==index):([...indexes, index]);
+        setIndexes(updateIndex);
+  }
+
+  const taskDone=()=>{
+    const newData = [...tododata];
+    const newList = newData.filter((ele,i)=>{
+       return !indexes.includes(i);
+    })
+    console.log(newList)
+    setTodoData(newList);
+    localStorage.setItem("tododata", JSON.stringify(newList));
+  }
+
   useEffect(() => {
-    const storedData = JSON.parse(localStorage.getItem("tododata")) || [];
-    setTodoData(storedData);
+    const storedData = localStorage.getItem("tododata");
+    try {
+      if (storedData !== undefined && storedData !== null) {
+        setTodoData(JSON.parse(storedData));
+      }
+    } catch (error) {
+      console.error("Error parsing stored data:", error);
+    }
   }, []);
 
   const renderData = (item, index) => {
@@ -45,11 +69,15 @@ const App = () => {
       <div className="flex bg-white w-4/5 mt-5 justify-between p-2" key={index}>
         <p>{item}</p>
         <div className="flex w-1/5 justify-between">
+        <i class="fa-solid fa-pen" onClick={editTask.bind(this, index)}></i>
           <i
             className="fa-solid fa-trash"
             onClick={deleteTask.bind(this, index)}
           ></i>
-          <i class="fa-solid fa-pen" onClick={editTask.bind(this, index)}></i>
+          <input type="checkbox" 
+          
+          onChange={()=>{setCheck(true); toggleCheck(index);}} >
+            </input>   
         </div>
       </div>
       
@@ -80,11 +108,19 @@ const App = () => {
           </div>
 
           <div className="bg-red-600 w-3/5 flex flex-col justify-center items-center p-5">
-            <div>
-              <h2>YOUR TO-DO</h2>
-            </div>
-            {tododata.length && tododata.map(renderData)}
+
+            {tododata.length > 0 && 
+            <h2>YOUR LIST</h2>
+            }
+            {tododata.length>0 ?
+            (tododata.map(renderData)):
+            (<h2>YOUR LIST IS EMPTY</h2>)}
           </div>
+        
+        { check &&
+          <button className="bg-green-600  p-2  mt-3" onClick={taskDone}>DONE</button>
+        }
+          
         </div>
       </div>
     </>
